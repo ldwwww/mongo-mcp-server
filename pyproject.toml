@@ -1,0 +1,9 @@
+[project]
+name = "mongo-mcp-server"
+version = "0.1.0"
+description = "MongoDB MCP Server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.9.4",
+]

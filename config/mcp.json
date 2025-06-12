@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+      "mongodb-server": {
+        "command": "uv",
+        "args": [
+          "run",
+          "--directory", 
+          "D:\\pythonDev\\mongo-mcp-server",
+          "mcp",
+          "run",
+          "src\\server.py"
+        ]
+      }
+    }
+  }

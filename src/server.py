@@ -29,6 +29,7 @@ def list_databases() -> List[str]:
 @mcp.resource("connection://cols/{db_name}")
 def list_collections(db_name: str) -> List[str]:
     """List all collections from a database"""
+    global current_db
     check_connection()
     current_db = client[db_name]
     if current_db is None:
@@ -52,17 +53,19 @@ def get_current_collection() -> str:
 @mcp.tool()
 def select_database(db_name: str) -> str:
     """Select or create a database"""
+    global current_db
     check_connection()
     current_db = client[db_name]
-    return f"database {db_name} selected"
+    return f"Successfully selected database, current database: {current_db.name}"
 
 @mcp.tool()
 def select_collection(col_name: str) -> str:
     """select or create a collection"""
     if current_db is None:
         return "Please select or create a database first"
+    global current_col
     current_col = current_db[col_name]
-    return f"collection {col_name} selected"   
+    return f"Successfully selected collection, current database: {current_col.name}"   
 
 @mcp.tool()
 async def query_documents(filter: None | Dict[str, Any]) -> List[Any]:

@@ -4,6 +4,7 @@ import time
 from typing import Any, List, Dict, Optional
 from mcp.server.fastmcp import FastMCP
 from pymongo import AsyncMongoClient
+from pymongo.server_description import ServerDescription
 from pymongo.errors import ConnectionFailure, PyMongoError
 
 mcp = FastMCP("mongodb mcp")
@@ -43,14 +44,36 @@ async def check_connection():
         # Try to re-establish the connection
         await establish_connection()
 
+async def get_server_descriptions(desc: ServerDescription) -> Dict[str, Any]:
+    """Get a dict of server descriptions from MongoDB."""
+    await check_connection()
+    server_descriptions = {}
+    server_descriptions.update({"Server Type Name": desc.server_type_name})
+    server_descriptions.update({"Replica Set Name": desc.replica_set_name})
+    server_descriptions.update({"Primary": [] if desc.primary is None else list(desc.primary)})
+    server_descriptions.update({"Max BSON Size": desc.max_bson_size})
+    server_descriptions.update({"Max Message Size": desc.max_message_size})
+    server_descriptions.update({"Max Write Batch Size": desc.max_write_batch_size})
+    server_descriptions.update({"Last Write Date": desc.last_write_date})
+    server_descriptions.update({"Last Update Time": desc.last_update_time})
+    server_descriptions.update({"Average Round Trip Time": desc.round_trip_time})
+    server_descriptions.update({"Min Round Trip Time": desc.min_round_trip_time})
+    server_descriptions.update({"Readable": desc.is_readable})
+    server_descriptions.update({"Writeable": desc.is_writable})
+    return server_descriptions
+
 @mcp.resource("connection://db_server_info")
-async def get_db_connection_info() -> str:
+async def get_db_connection_info() -> Dict[str, list]:
     """
     Get MongoDB connection info
     Returns JSON string containing connection information
     """
     await check_connection()
-    return json.dumps(client.topology_description.to_dict())
+    servers = client.topology_description.server_descriptions()
+    server_info_list = []
+    for k, v in servers.items():
+        server_info_list.append({k: await get_server_descriptions(v)})
+    return {"Mongo Servers": server_info_list}
 
 @mcp.resource("connection://dbs")
 async def list_databases() -> List[str]:
